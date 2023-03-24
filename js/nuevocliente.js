@@ -40,12 +40,47 @@
 
         if(nombre == '' || email == '' || telefono == '' || empresa == ''){
             console.error('Todos los campos del formulario son obligatorios');
-            mostrarAlerta('Todos los campos del formulario son obligatorios', 'error');
-        }else{
-
+            mostrarAlerta('Todos los campos del formulario son obligatorios ❌', 'error');
         }
+
+        //Crear un objeto con la informacion
+
+        const cliente = {
+            /* nombre : nombre,
+            email : email,
+            telefono : telefono,
+            empresa : empresa */
+
+            nombre,
+            email,
+            telefono,
+            empresa,
+            id : Date.now()
+        }
+
+       crearNuevoCliente(cliente);
     }
 
+    // Creacion de un nuevo registro de Cliente
+
+    function crearNuevoCliente(cliente){
+        const transaction = DB.transaction('crm_clientes', 'readwrite');
+        const objectStore = transaction.objectStore('crm_clientes');
+
+        objectStore.add(cliente);
+
+        transaction.onerror = ()=>{
+            mostrarAlerta('Hubo un error al registrar cliente en DB', 'error');
+        };
+
+        transaction.oncomplete = ()=>{
+            mostrarAlerta('Se registró correctamente cliente a DB', 'success');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        }
+    }
 
     //Mostrar alerta
     function mostrarAlerta(mensaje, tipo){
