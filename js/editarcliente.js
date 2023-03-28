@@ -1,11 +1,13 @@
 (function (){
     let DB;
+    let idCliente;
 
     const nombreInput = document.querySelector('#nombre');
     const emailInput = document.querySelector('#email');
     const telefonoInput = document.querySelector('#telefono');
     const empresaInput = document.querySelector('#empresa');
 
+    const formulario = document.querySelector('#formulario');
     
     document.addEventListener("DOMContentLoaded", ()=>{
 
@@ -19,16 +21,19 @@
         console.log('parametrosURL :>> ', window.location.search);
 
         //2.- Obener y asignar el id de cliente
-        const idCliente = parametrosURL.get('id');
+        idCliente = parametrosURL.get('id');
         console.log('idCliente :>> ', idCliente);
 
         //3.- Si se tiene idCliente se manda llamar la funcion obtenerDatosCliente dando el parametro idCliente, y se manda llamar dentro de un sertTimeOut para dar tiempo a que se abra la conexion a la BD 
         if(idCliente){
             setTimeout(() => {
                 obtenerDatosCliente(idCliente);
-            }, 180);
+            }, 300);
             
         }
+
+        //Actualiza el registro
+        formulario.addEventListener('submit', actualizarCliente);
     });
 
     function obtenerDatosCliente(id) {
@@ -76,6 +81,45 @@
         emailInput.value = email;
         telefonoInput.value =telefono;
         empresaInput.value = empresa;
+
+    };
+
+    function actualizarCliente(e) {
+        e.preventDefault();
+
+        if(nombreInput.value === '' || emailInput.value === '' || telefonoInput.value === '' || empresaInput.value === ''){
+            mostrarAlerta('Todos los campos son obligatorios', 'error');
+            return;
+        }
+
+        //Actualizar cliente
+        const clienteActualizado = {
+            nombre: nombreInput.value,
+            empresa: empresaInput.value,
+            email: emailInput.value,
+            telefono: telefonoInput.value,
+            id: Number(idCliente)
+        };
+        
+        const transaction = DB.transaction(['crm_clientes'], 'readwrite');
+        const objectStore = transaction.objectStore('crm_clientes');
+
+        //Se ingresa el dato actualizado a la indexedBD
+        objectStore.put(clienteActualizado);
+
+        //Si se completa la operacion
+        transaction.oncomplete = ()=>{
+            mostrarAlerta('Editado Correctamente', 'success');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        };
+
+        //Si No se completa la operacion
+        transaction.onerror = ()=>{
+            mostrarAlerta('Hubo un error al actualizar el registro', 'error');
+        }
 
     }
 })();
